@@ -106,7 +106,6 @@ def get_random_spread(n:int) -> Spread:
 ## MCP
 mcp = FastMCP(
     name="tarot-python",
-    stateless_http=True,
 )
 
 
@@ -161,5 +160,5 @@ def get_spread(number_of_cards: int) -> Spread:
 #     pass
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="stdio")
 
