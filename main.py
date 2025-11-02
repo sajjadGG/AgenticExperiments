@@ -1,6 +1,5 @@
 import mcp.types as types
-from mcp.server.fastmcp import FastMCP
-
+from mcp.server.fastmcp import FastMCP, Image
 from typing import Any, Dict, List
 from dataclasses import dataclass
 from pydantic import BaseModel,ConfigDict,Field,ValidationError
@@ -72,47 +71,57 @@ def to_snake_slug(text:str)->str:
     text = text.strip('_')
     return text
 
+SLUG_TO_CARDS :  Dict[str,TarotCard] = {repr(e):e for e in load_all_cards()}
+
+def get_card_by_slug(slug_name:str)-> TarotCard:
+    return SLUG_TO_CARDS[slug_name]
+
 ## MCP
 mcp = FastMCP(
     name="tarot-python",
     stateless_http=True,
 )
 
-SLUG_TO_CARDS :  Dict[str,TarotCard] = {}
 
 # Track drawn cards for a reading session state
 DRAWN_CARDS: List[TarotCard] = []
 
-@mcp.resource("tarot://cards/{card_name}")
-def get_all_tarot_cards(card_name:str) -> str:
-    """Resource template that provides information about a tarot cards in the deck."""
-    pass
-
-
-@mcp.tool()
-def get_spread(number_of_cards: int) -> List[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-    """
-    Draw random tarot cards from the deck for a reading.
+@mcp.resource("tarot://cards/image/{card_name_slug}",mime_type="image/jpeg")
+def get_card_image(card_name_slug:str) -> bytes:
+    """returns the image of the particular card given the card_name_slug for instance given
+    card_name:ten_of_pentacles it returns the Ten of Pentacles card
+    remember card_name_slug should be snake case"""
+    card = get_card_by_slug(card_name_slug)
+    image_path = f"{ASSETS_DIR}/cards/{card.img_path}"
+    # 3. Read the file as raw bytes and return them
+    with open(image_path, 'rb') as f:
+        base64_encoded = f.read()
+    return base64_encoded
     
-    Args:
-        number_of_cards: Number of cards to draw (1-10)
+# @mcp.tool()
+# def get_spread(number_of_cards: int) -> List[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+#     """
+#     Draw random tarot cards from the deck for a reading.
     
-    Returns:
-        A list of randomly selected tarot cards with their images
-    """
-    pass
+#     Args:
+#         number_of_cards: Number of cards to draw (1-10)
+    
+#     Returns:
+#         A list of randomly selected tarot cards with their images
+#     """
+#     pass
 
-# TODO: this makes this stateful
-@mcp.tool()
-def get_additional_tarot_card() -> List[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-    """
-    Draw one additional tarot card to add to the current reading.
-    This card will not be one that was already drawn in the current reading.
+# # TODO: this makes this stateful
+# @mcp.tool()
+# def get_additional_tarot_card() -> List[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+#     """
+#     Draw one additional tarot card to add to the current reading.
+#     This card will not be one that was already drawn in the current reading.
     
-    Returns:
-        One additional randomly selected tarot card with its image
-    """
-    pass
+#     Returns:
+#         One additional randomly selected tarot card with its image
+#     """
+#     pass
 
 if __name__ == "__main__":
     mcp.run()
