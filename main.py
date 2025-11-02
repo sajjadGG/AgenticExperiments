@@ -34,6 +34,26 @@ class TarotCard:
         Ten of Pentacles -> ten_of_pentacles
         """
         return to_snake_slug(self.name)
+
+@dataclass
+class TarotCardWidget:
+    name: str
+    # image_base64:bytes
+    is_reversed: bool
+    
+    def __str__(self) -> str:
+        return f"{self.name} {'_reversed' if self.is_reversed else ''}"
+    
+    def __repr__(self) -> str:
+        return f"{self.name} {'_reversed' if self.is_reversed else ''}"
+
+@dataclass
+class Spread:
+    cards: List[TarotCardWidget]
+    
+    def __str__(self):
+        return '[' + ",".join([str(c) for c in self.cards]) + ']'
+    
     
 
 ## Util funcs
@@ -76,6 +96,13 @@ SLUG_TO_CARDS :  Dict[str,TarotCard] = {repr(e):e for e in load_all_cards()}
 def get_card_by_slug(slug_name:str)-> TarotCard:
     return SLUG_TO_CARDS[slug_name]
 
+def get_random_spread(n:int) -> Spread:
+    card_names = list(SLUG_TO_CARDS.keys())
+    return Spread(
+        cards=
+        [TarotCardWidget(c,is_reversed=random.random()>0.5) for c in random.choices(card_names,k=n)]
+    )
+    
 ## MCP
 mcp = FastMCP(
     name="tarot-python",
@@ -98,18 +125,28 @@ def get_card_image(card_name_slug:str) -> bytes:
         base64_encoded = f.read()
     return base64_encoded
     
-# @mcp.tool()
-# def get_spread(number_of_cards: int) -> List[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-#     """
-#     Draw random tarot cards from the deck for a reading.
+@mcp.tool()
+def get_spread(number_of_cards: int) -> Spread:
+    """Draws a specified number of tarot cards for a reading.
+
+    This tool randomly selects cards from a standard 78-card deck and
+    assigns each card a random orientation (upright or reversed).
+    This is used to generate the foundation for any tarot spread.
     
-#     Args:
-#         number_of_cards: Number of cards to draw (1-10)
-    
-#     Returns:
-#         A list of randomly selected tarot cards with their images
-#     """
-#     pass
+    For example, call this with 1 card for a "Card of the Day",
+    3 cards for a "Past, Present, Future" spread, or 10 cards
+    for a "Celtic Cross" spread.
+
+    Args:
+        number_of_cards: The exact number of cards to draw for the
+                         spread (e.g., 1, 3, or 10).
+
+    Returns:
+        Spread: An object containing a list of the drawn cards.
+                Each card includes its official name and whether
+                it is 'is_reversed' (True/False).
+    """
+    return get_random_spread(number_of_cards)
 
 # # TODO: this makes this stateful
 # @mcp.tool()
