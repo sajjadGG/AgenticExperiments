@@ -6,7 +6,7 @@ from pydantic import BaseModel,ConfigDict,Field,ValidationError
 import json
 import random
 import re
-
+import sys
 ## Constants
 ASSETS_DIR = "assets"
 MIMETYPE = "image/jpeg"
@@ -105,7 +105,7 @@ def get_random_spread(n:int) -> Spread:
     
 ## MCP
 mcp = FastMCP(
-    name="tarot-python",
+    name="tarot-python",stateless_http=True
 )
 
 
@@ -158,7 +158,10 @@ def get_spread(number_of_cards: int) -> Spread:
 #         One additional randomly selected tarot card with its image
 #     """
 #     pass
-
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
-
+    try:
+        # Initialize and run the server
+        print("Starting MCP server...")
+        mcp.run(transport="streamable-http")
+    except Exception as e:
+        print(f"Error while running MCP server: {e}", file=sys.stderr)

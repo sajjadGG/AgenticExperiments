@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "tarot-mcp": {
+      "type": "stdio",
+      "command": "/home/azureuser/repos/AgenticExperiments/.venv/bin/python",
+      "args": [
+        "/home/azureuser/repos/AgenticExperiments/main.py"
+      ]
+    }
+  }
+}
